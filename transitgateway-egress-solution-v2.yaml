@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: The template creates TGW & an Egress VPC for internet.
 
   It is a heavily modified version of the original template, created by shkahma@ which can be found here
@@ -6,23 +6,19 @@ Description: The template creates TGW & an Egress VPC for internet.
   cloudformation now supports the creation of routes within a VPC route table, where the target is a
   transit gateway
 
-
 Parameters:
-
   AppCidr:
     Description: Default route for adding to app VPCs route tables
     Type: String
-    Default: '0.0.0.0/0'
+    Default: "0.0.0.0/0"
 
   EgressPublicCidr:
     Description: CIDR range to be added to public egress VPC route table
     Type: String
-    Default: '10.0.0.0/8'
-
+    Default: "10.0.0.0/8"
 
 Resources:
-
-#egress vpc and subnet creation
+  #egress vpc and subnet creation
 
   EgressVPC:
     Type: AWS::EC2::VPC
@@ -35,7 +31,7 @@ Resources:
   PublicEgressVpcSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'EgressVPC'
+      VpcId: !Ref "EgressVPC"
       CidrBlock: 192.168.1.0/24
       AvailabilityZone:
         Fn::Select:
@@ -43,14 +39,14 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: Egress-Public-AZ1
 
   PublicEgressVpcSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'EgressVPC'
+      VpcId: !Ref "EgressVPC"
       CidrBlock: 192.168.2.0/24
       AvailabilityZone:
         Fn::Select:
@@ -58,14 +54,14 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: Egress-Public-AZ2
 
   PrivateEgressSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'EgressVPC'
+      VpcId: !Ref "EgressVPC"
       CidrBlock: 192.168.3.0/24
       AvailabilityZone:
         Fn::Select:
@@ -73,14 +69,14 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: Egress-Private-AZ1
 
   PrivateEgressSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'EgressVPC'
+      VpcId: !Ref "EgressVPC"
       CidrBlock: 192.168.4.0/24
       AvailabilityZone:
         Fn::Select:
@@ -88,37 +84,37 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: Egress-Private-AZ2
 
-#igw and NAT gw creation
+  #igw and NAT gw creation
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
   AttachIGW:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref 'EgressVPC'
-      InternetGatewayId: !Ref 'InternetGateway'
+      VpcId: !Ref "EgressVPC"
+      InternetGatewayId: !Ref "InternetGateway"
   IPAddress1:
     Type: AWS::EC2::EIP
     DependsOn: AttachIGW
     Properties:
       Domain: vpc
 
-# you only need the second EIP if you deploy 2 NAT gateways. The cloudformation for that is included here, but commented out.
-# this means that the cloudformation matches the blog post, but you can edit it to create 2 NAT gateways.
+  # you only need the second EIP if you deploy 2 NAT gateways. The cloudformation for that is included here, but commented out.
+  # this means that the cloudformation matches the blog post, but you can edit it to create 2 NAT gateways.
 
-#  IPAddress2:
-#    Type: AWS::EC2::EIP
-#    DependsOn: AttachIGW
-#    Properties:
-#      Domain: vpc
+  #  IPAddress2:
+  #    Type: AWS::EC2::EIP
+  #    DependsOn: AttachIGW
+  #    Properties:
+  #      Domain: vpc
 
   NATGateway1:
     Type: AWS::EC2::NatGateway
@@ -127,103 +123,101 @@ Resources:
       SubnetId: !Ref PublicEgressVpcSubnet1
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
 
-# removed as this is not included in the blog post
+  # removed as this is not included in the blog post
 
-#  NATGateway2:
-#    Type: AWS::EC2::NatGateway
-#    Properties:
-#      AllocationId: !GetAtt IPAddress2.AllocationId
-#      SubnetId: !Ref PublicEgressVpcSubnet2
-#      Tags:
-#        - Key: Application
-#          Value: !Ref 'AWS::StackId'
+  #  NATGateway2:
+  #    Type: AWS::EC2::NatGateway
+  #    Properties:
+  #      AllocationId: !GetAtt IPAddress2.AllocationId
+  #      SubnetId: !Ref PublicEgressVpcSubnet2
+  #      Tags:
+  #        - Key: Application
+  #          Value: !Ref 'AWS::StackId'
 
-
-
-#Egress route table configuration
+  #Egress route table configuration
 
   EgressRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref 'EgressVPC'
+      VpcId: !Ref "EgressVPC"
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: Egress-Public-RT
   PrivateEgressRouteTable1:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref 'EgressVPC'
+      VpcId: !Ref "EgressVPC"
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: Egress-Private-RT-AZ1
 
-# This would be needed if you had 2 NAT gateways.
+  # This would be needed if you had 2 NAT gateways.
 
-#  PrivateEgressRouteTable2:
-#    Type: AWS::EC2::RouteTable
-#    Properties:
-#      VpcId: !Ref 'EgressVPC'
-#      Tags:
-#        - Key: Application
-#          Value: !Ref 'AWS::StackId'
-#        - Key: Name
-#          Value: Egress-Private-RT-AZ2
+  #  PrivateEgressRouteTable2:
+  #    Type: AWS::EC2::RouteTable
+  #    Properties:
+  #      VpcId: !Ref 'EgressVPC'
+  #      Tags:
+  #        - Key: Application
+  #          Value: !Ref 'AWS::StackId'
+  #        - Key: Name
+  #          Value: Egress-Private-RT-AZ2
 
   Route:
     Type: AWS::EC2::Route
     DependsOn: AttachIGW
     Properties:
-      RouteTableId: !Ref 'EgressRouteTable'
+      RouteTableId: !Ref "EgressRouteTable"
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref 'InternetGateway'
+      GatewayId: !Ref "InternetGateway"
   SubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'PublicEgressVpcSubnet1'
-      RouteTableId: !Ref 'EgressRouteTable'
+      SubnetId: !Ref "PublicEgressVpcSubnet1"
+      RouteTableId: !Ref "EgressRouteTable"
   SubnetRouteTableAssociation2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'PublicEgressVpcSubnet2'
-      RouteTableId: !Ref 'EgressRouteTable'
+      SubnetId: !Ref "PublicEgressVpcSubnet2"
+      RouteTableId: !Ref "EgressRouteTable"
 
   PrivateEgressRoute1:
     Type: AWS::EC2::Route
     DependsOn: AttachIGW
     Properties:
-      RouteTableId: !Ref 'PrivateEgressRouteTable1'
+      RouteTableId: !Ref "PrivateEgressRouteTable1"
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref 'NATGateway1'
+      NatGatewayId: !Ref "NATGateway1"
 
-# This would be needed if you had 2 NAT gateways.
+  # This would be needed if you had 2 NAT gateways.
 
-#  PrivateEgressRoute2:
-#    Type: AWS::EC2::Route
-#    DependsOn: AttachIGW
-#    Properties:
-#      RouteTableId: !Ref 'PrivateEgressRouteTable2'
-#      DestinationCidrBlock: 0.0.0.0/0
-#      NatGatewayId: !Ref 'NATGateway2'
+  #  PrivateEgressRoute2:
+  #    Type: AWS::EC2::Route
+  #    DependsOn: AttachIGW
+  #    Properties:
+  #      RouteTableId: !Ref 'PrivateEgressRouteTable2'
+  #      DestinationCidrBlock: 0.0.0.0/0
+  #      NatGatewayId: !Ref 'NATGateway2'
 
   PrivateEgressRouteTable1Association:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'PrivateEgressSubnet1'
-      RouteTableId: !Ref 'PrivateEgressRouteTable1'
+      SubnetId: !Ref "PrivateEgressSubnet1"
+      RouteTableId: !Ref "PrivateEgressRouteTable1"
   PrivateEgressRouteTable2Association:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'PrivateEgressSubnet2'
-      RouteTableId: !Ref 'PrivateEgressRouteTable1'
-#      RouteTableId: !Ref 'PrivateEgressRouteTable2'    # replace the previous line with this association if you have 2 NAT gateways.
+      SubnetId: !Ref "PrivateEgressSubnet2"
+      RouteTableId: !Ref "PrivateEgressRouteTable1"
+  #      RouteTableId: !Ref 'PrivateEgressRouteTable2'    # replace the previous line with this association if you have 2 NAT gateways.
 
-# App vpc and subnet creation
+  # App vpc and subnet creation
 
   App1VPC:
     Type: AWS::EC2::VPC
@@ -231,13 +225,13 @@ Resources:
       CidrBlock: 10.0.0.0/16
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App1-VPC
   App1Subnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'App1VPC'
+      VpcId: !Ref "App1VPC"
       CidrBlock: 10.0.1.0/24
       AvailabilityZone:
         Fn::Select:
@@ -245,13 +239,13 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App1-Private-AZ1
   App1Subnet2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'App1VPC'
+      VpcId: !Ref "App1VPC"
       CidrBlock: 10.0.2.0/24
       AvailabilityZone:
         Fn::Select:
@@ -259,28 +253,28 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App1-Private-AZ2
   App1RouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref 'App1VPC'
+      VpcId: !Ref "App1VPC"
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App1-PrivateRouteTable
   App1Subnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'App1Subnet1'
-      RouteTableId: !Ref 'App1RouteTable'
+      SubnetId: !Ref "App1Subnet1"
+      RouteTableId: !Ref "App1RouteTable"
   App1Subnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'App1Subnet2'
-      RouteTableId: !Ref 'App1RouteTable'
+      SubnetId: !Ref "App1Subnet2"
+      RouteTableId: !Ref "App1RouteTable"
 
   App2VPC:
     Type: AWS::EC2::VPC
@@ -288,13 +282,13 @@ Resources:
       CidrBlock: 10.1.0.0/16
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App2-VPC
   App2Subnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'App2VPC'
+      VpcId: !Ref "App2VPC"
       CidrBlock: 10.1.1.0/24
       AvailabilityZone:
         Fn::Select:
@@ -302,13 +296,13 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App2-Private-AZ1
   App2Subnet2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref 'App2VPC'
+      VpcId: !Ref "App2VPC"
       CidrBlock: 10.1.2.0/24
       AvailabilityZone:
         Fn::Select:
@@ -316,31 +310,30 @@ Resources:
           - Fn::GetAZs: ""
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App2-Private-AZ2
   App2RouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref 'App2VPC'
+      VpcId: !Ref "App2VPC"
       Tags:
         - Key: Application
-          Value: !Ref 'AWS::StackId'
+          Value: !Ref "AWS::StackId"
         - Key: Name
           Value: App2-PrivateRouteTable
   App2SubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'App2Subnet1'
-      RouteTableId: !Ref 'App2RouteTable'
+      SubnetId: !Ref "App2Subnet1"
+      RouteTableId: !Ref "App2RouteTable"
   App2Subnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'App2Subnet2'
-      RouteTableId: !Ref 'App2RouteTable'
+      SubnetId: !Ref "App2Subnet2"
+      RouteTableId: !Ref "App2RouteTable"
 
-
-#transit gateway creation
+  #transit gateway creation
 
   TransitGateway:
     Type: "AWS::EC2::TransitGateway"
@@ -353,15 +346,14 @@ Resources:
         - Key: Name
           Value: TGW-Internet
 
-
-# attach subnets to TGW
+  # attach subnets to TGW
 
   EgressVpcAttachment:
     Type: "AWS::EC2::TransitGatewayAttachment"
     Properties:
       SubnetIds:
-        - !Ref 'PrivateEgressSubnet1'
-        - !Ref 'PrivateEgressSubnet2'
+        - !Ref "PrivateEgressSubnet1"
+        - !Ref "PrivateEgressSubnet2"
       Tags:
         - Key: Name
           Value: Egress-Attachment
@@ -371,8 +363,8 @@ Resources:
     Type: "AWS::EC2::TransitGatewayAttachment"
     Properties:
       SubnetIds:
-        - !Ref 'App1Subnet1'
-        - !Ref 'App1Subnet2'
+        - !Ref "App1Subnet1"
+        - !Ref "App1Subnet2"
       Tags:
         - Key: Name
           Value: App1-Attachment
@@ -382,15 +374,15 @@ Resources:
     Type: "AWS::EC2::TransitGatewayAttachment"
     Properties:
       SubnetIds:
-        - !Ref 'App2Subnet1'
-        - !Ref 'App2Subnet2'
+        - !Ref "App2Subnet1"
+        - !Ref "App2Subnet2"
       Tags:
         - Key: Name
           Value: App2-Attachment
       TransitGatewayId: !Ref TransitGateway
       VpcId: !Ref App2VPC
 
-#define TGW route tables
+  #define TGW route tables
 
   EgressTransitGatewayRouteTable:
     Type: "AWS::EC2::TransitGatewayRouteTable"
@@ -408,7 +400,7 @@ Resources:
           Value: App-RouteTable
       TransitGatewayId: !Ref TransitGateway
 
-#add a default route and black hole to the app route table
+  #add a default route and black hole to the app route table
 
   AppDefaultTGWRoute:
     Type: "AWS::EC2::TransitGatewayRoute"
@@ -431,16 +423,16 @@ Resources:
       DestinationCidrBlock: 172.16.0.0/12
       TransitGatewayRouteTableId: !Ref AppTransitGatewayRouteTable
 
-# We have not added a 192.168.0.0/16 black hole as for testing you may want to put an instance in the public subnet.
-# However, if you are only using the egress vpc as a route out, with a NAT gateway or similar proxy/NAT function,
-# then you can add the bloack hole for 192.168.0.0/16 as well
+  # We have not added a 192.168.0.0/16 black hole as for testing you may want to put an instance in the public subnet.
+  # However, if you are only using the egress vpc as a route out, with a NAT gateway or similar proxy/NAT function,
+  # then you can add the bloack hole for 192.168.0.0/16 as well
 
-#  AppBlackhole192Route:
-#    Type: "AWS::EC2::TransitGatewayRoute"
-#    Properties:
-#      Blackhole: Yes
-#      DestinationCidrBlock: 192.168.0.0/16
-#      TransitGatewayRouteTableId: !Ref AppTransitGatewayRouteTable
+  #  AppBlackhole192Route:
+  #    Type: "AWS::EC2::TransitGatewayRoute"
+  #    Properties:
+  #      Blackhole: Yes
+  #      DestinationCidrBlock: 192.168.0.0/16
+  #      TransitGatewayRouteTableId: !Ref AppTransitGatewayRouteTable
 
   App1Route:
     Type: "AWS::EC2::TransitGatewayRoute"
@@ -456,8 +448,7 @@ Resources:
       TransitGatewayAttachmentId: !Ref App2Attachment
       TransitGatewayRouteTableId: !Ref EgressTransitGatewayRouteTable
 
-
-#TGW associations
+  #TGW associations
 
   EgressVpcTgwAssociation:
     Type: "AWS::EC2::TransitGatewayRouteTableAssociation"
@@ -475,7 +466,7 @@ Resources:
       TransitGatewayAttachmentId: !Ref App2Attachment
       TransitGatewayRouteTableId: !Ref AppTransitGatewayRouteTable
 
-# Update VPC route tables to point towards transit gateway for appropriate target CIDR ranges
+  # Update VPC route tables to point towards transit gateway for appropriate target CIDR ranges
 
   UpdateApp1RouteTable:
     Type: AWS::EC2::Route
@@ -489,18 +480,52 @@ Resources:
     Type: AWS::EC2::Route
     DependsOn: App2Attachment
     Properties:
-       RouteTableId: !Ref App2RouteTable
-       DestinationCidrBlock: !Ref AppCidr
-       TransitGatewayId: !Ref TransitGateway
+      RouteTableId: !Ref App2RouteTable
+      DestinationCidrBlock: !Ref AppCidr
+      TransitGatewayId: !Ref TransitGateway
 
   UpdateEgressRouteTable:
     Type: AWS::EC2::Route
     DependsOn: EgressVpcAttachment
     Properties:
-       RouteTableId: !Ref EgressRouteTable
-       DestinationCidrBlock: !Ref EgressPublicCidr
-       TransitGatewayId: !Ref TransitGateway
+      RouteTableId: !Ref EgressRouteTable
+      DestinationCidrBlock: !Ref EgressPublicCidr
+      TransitGatewayId: !Ref TransitGateway
 
+  BastionEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.nano
+      ImageId: ami-0b2f05cf909299b7c
+      KeyName: keypair01
+      SecurityGroupIds:
+        - !Ref BastionSecurityGroup
+      SubnetId: !Ref PublicEgressVpcSubnet1
+      Tags:
+        - Key: Name
+          Value: Bastion
+
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Bastion
+      GroupName: Bastion
+      VpcId: !Ref EgressVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+  BastionElasticIp:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref BastionEC2
+      Domain: vpc
 
 Outputs:
   Name:
