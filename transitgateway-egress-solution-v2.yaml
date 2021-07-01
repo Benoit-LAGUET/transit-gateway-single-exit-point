@@ -540,7 +540,7 @@ Resources:
       SubnetId: !Ref App1Subnet1
       Tags:
         - Key: Name
-          Value: app1
+          Value: App1
 
   App1SecurityGroup:
     Type: AWS::EC2::SecurityGroup
