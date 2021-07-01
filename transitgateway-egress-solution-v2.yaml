@@ -529,6 +529,64 @@ Resources:
       Domain: vpc
     DependsOn: AttachIGW
 
+  App1EC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.nano
+      ImageId: ami-0b2f05cf909299b7c
+      KeyName: keypair01
+      SecurityGroupIds:
+        - !Ref App1SecurityGroup
+      SubnetId: !Ref App1-Private-AZ1
+      Tags:
+        - Key: Name
+          Value: app1
+
+  App1SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: App1
+      GroupName: App1
+      VpcId: !Ref App1-VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
+  App2EC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.nano
+      ImageId: ami-0b2f05cf909299b7c
+      KeyName: keypair01
+      SecurityGroupIds:
+        - !Ref App2SecurityGroup
+      SubnetId: !Ref App2-Private-AZ1
+      Tags:
+        - Key: Name
+          Value: App2
+
+  App2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: App2
+      GroupName: App2
+      VpcId: !Ref App2-VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+
 Outputs:
   Name:
     Value: !Ref AWS::StackName
