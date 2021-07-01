@@ -504,6 +504,7 @@ Resources:
       Tags:
         - Key: Name
           Value: Bastion
+      DependsOn: AttachIGW
 
   BastionSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -526,6 +527,7 @@ Resources:
     Properties:
       InstanceId: !Ref BastionEC2
       Domain: vpc
+      DependsOn: AttachIGW
 
 Outputs:
   Name:
