@@ -537,7 +537,7 @@ Resources:
       KeyName: keypair01
       SecurityGroupIds:
         - !Ref App1SecurityGroup
-      SubnetId: !Ref App1-Private-AZ1
+      SubnetId: !Ref App1Subnet1
       Tags:
         - Key: Name
           Value: app1
@@ -547,7 +547,7 @@ Resources:
     Properties:
       GroupDescription: App1
       GroupName: App1
-      VpcId: !Ref App1-VPC
+      VpcId: !Ref App1VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -566,7 +566,7 @@ Resources:
       KeyName: keypair01
       SecurityGroupIds:
         - !Ref App2SecurityGroup
-      SubnetId: !Ref App2-Private-AZ1
+      SubnetId: !Ref App2Subnet1
       Tags:
         - Key: Name
           Value: App2
@@ -576,7 +576,7 @@ Resources:
     Properties:
       GroupDescription: App2
       GroupName: App2
-      VpcId: !Ref App2-VPC
+      VpcId: !Ref App2VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
